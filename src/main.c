@@ -113,8 +113,10 @@ int main(int argc, char *argv[]) {
     if (!srcCode || codeSize == 0)
         TerminateWithErrorCode(ERR_IO, 5, FormatError("Empty or invalid source file: %s", srcFile));
     size_t *brackets = CreateBracketMapping(srcCode, codeSize);
-    if (!brackets)
-        TerminateWithErrorCode(ERR_SYNTAX, 3, "Failed to create bracket mapping");
+    if (!brackets) {
+        free(srcCode);
+        TerminateWithErrorCode(ERR_SYNTAX, 3, "Failed to create bracket mapping or no brackets found");
+    }
     if (benchEnabled) {
         BenchRun(srcCode, codeSize, brackets, debugEnabled, snapWidth, initTape, maxTape, maxIter, eofMode);
     } else {

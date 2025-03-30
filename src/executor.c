@@ -5,36 +5,35 @@
 #include <stdio.h>
 #include <string.h>
 BFState* CreateExecutor(size_t initialCapacity) {
-    if (initialCapacity == 0)
-        initialCapacity = INITIAL_TAPE_CAPACITY;
+    if (!initialCapacity) initialCapacity = INITIAL_TAPE_CAPACITY;
     BFState *state = AllocateMemory(sizeof(BFState));
     state->tape = AllocateMemory(initialCapacity);
     memset(state->tape, 0, initialCapacity);
     state->capacity = initialCapacity;
     state->dataPtr = 0;
+    state->currentValue = 0;
     return state;
 }
 void DestroyExecutor(BFState *state) {
     if (state) {
-        if (state->tape)
-            free(state->tape);
+        free(state->tape);
         free(state);
     }
 }
 void MovePtr(BFState *state, int offset, size_t maxCapacity) {
-    if (!state || offset == 0)
-        return; 
-    if (offset < 0 && (size_t)(-offset) > state->dataPtr) {
+    if (!state || !offset) return;
+    state->tape[state->dataPtr] = state->currentValue;
+    if (offset < 0 && (size_t)(-offset) > state->dataPtr)
         TerminateWithErrorCode(ERR_RUNTIME, 1, "Tape underflow - pointer moved below position 0");
-    }
-    size_t newPos = offset < 0 ? state->dataPtr - (size_t)(-offset) : state->dataPtr + (size_t)offset;
+    size_t newPos = state->dataPtr + offset;
     if (newPos >= state->capacity) {
-        size_t newCap = state->capacity * 2;
-        newCap = newCap > newPos ? newCap : newPos + 1;
+        if (newPos >= maxCapacity)
+            TerminateWithErrorCode(ERR_RUNTIME, 2, "Maximum tape capacity exceeded");
+        size_t newCap = state->capacity < 1024 
+                       ? state->capacity << 1 
+                       : state->capacity + (state->capacity >> 1);
+        newCap = newPos >= newCap ? newPos + 1024 : newCap;
         if (newCap > maxCapacity) {
-            if (newPos >= maxCapacity) {
-                TerminateWithErrorCode(ERR_RUNTIME, 2, "Maximum tape capacity exceeded");
-            }
             newCap = maxCapacity;
         }
         state->tape = ReallocateMemory(state->tape, newCap);
@@ -42,4 +41,5 @@ void MovePtr(BFState *state, int offset, size_t maxCapacity) {
         state->capacity = newCap;
     }
     state->dataPtr = newPos;
+    state->currentValue = state->tape[state->dataPtr];
 }

@@ -17,6 +17,7 @@ void LogMessage(LogLevel level, const char *message);
 void TerminateWithError(const char *message);
 void TerminateWithErrorCode(ErrorCategory category, int code, const char *message);
 char *FormatError(const char *format, ...);
+void FreeError(char *errorString);
 #define LogInfo(msg) LogMessage(LOG_INFO, (msg))
 #define LogWarning(msg) LogMessage(LOG_WARN, (msg))
 #define LogError(msg) LogMessage(LOG_ERROR, (msg))

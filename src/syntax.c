@@ -43,6 +43,7 @@ size_t *CreateBracketMapping(const char *programCode, size_t codeLength) {
         free(bracketStack);
         free(bracketMapping);
         LogWarning("No brackets found in program - program may not contain loops");
+        return NULL;
     }
     free(bracketStack);
     return bracketMapping;

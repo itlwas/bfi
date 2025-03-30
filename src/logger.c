@@ -42,6 +42,15 @@ void TerminateWithErrorCode(ErrorCategory category, int code, const char *messag
     fputs(message, stderr);
     fputs(CLR_RESET, stderr);
     fputc('\n', stderr);
+    bool shouldFree = message != NULL;
+    if (shouldFree && message[0] != '\0' && 
+        ((category == ERR_SYSTEM && (code == 7 || code == 8 || code == 9 || code == 1)) || 
+         (message[0] == 'N' && strcmp(message, "No brackets found") == 0))) {
+        shouldFree = false;
+    }
+    if (shouldFree) {
+        free((void*)message);
+    }
     exit(EXIT_FAILURE);
 }
 char *FormatError(const char *format, ...) {
@@ -58,4 +67,9 @@ char *FormatError(const char *format, ...) {
     vsnprintf(errString, required + 1, format, argsCopy);
     va_end(argsCopy);
     return errString;
+}
+void FreeError(char *errorString) {
+    if (errorString) {
+        free(errorString);
+    }
 }

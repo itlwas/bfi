@@ -7,34 +7,31 @@ typedef struct {
     unsigned char *tape;
     size_t capacity;
     size_t dataPtr;
+    unsigned char currentValue;
 } BFState;
 BFState* CreateExecutor(size_t initialCapacity);
 void DestroyExecutor(BFState *state);
 void MovePtr(BFState *state, int offset, size_t maxCapacity);
 static inline void Increment(BFState *state, int delta) {
-    if (!state) return;
-    state->tape[state->dataPtr] += delta;
+    state->currentValue += delta;
 }
 static inline void OutputValue(BFState *state) {
-    if (!state) return;
-    putchar(state->tape[state->dataPtr]);
-    fflush(stdout);
+    putchar(state->currentValue);
 }
 static inline bool IsZero(BFState *state) {
-    if (!state) return true;
-    return state->tape[state->dataPtr] == 0;
+    return !state->currentValue;
 }
 static inline void InputValue(BFState *state, int eofHandlingMode) {
-    if (!state) return;
     int c = getchar();
     if (c == EOF) {
-        switch (eofHandlingMode) {
-            case 0: break;
-            case 1: state->tape[state->dataPtr] = 0; break;
-            case 2: state->tape[state->dataPtr] = 255; break;
-        }
-    } else {
-        state->tape[state->dataPtr] = (unsigned char)c;
-    }
+        state->currentValue = eofHandlingMode == 1 ? 0 : 
+                             eofHandlingMode == 2 ? 255 : state->currentValue;
+    } else state->currentValue = c;
+}
+static inline void SetZero(BFState *state) {
+    state->currentValue = 0;
+}
+static inline void SetValue(BFState *state, unsigned char value) {
+    state->currentValue = value;
 }
 #endif 
