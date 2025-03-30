@@ -14,18 +14,18 @@
 char *ReadFileContent(const char *fileName, size_t *fileSize) {
     struct stat fileStats;
     if (stat(fileName, &fileStats) != 0)
-        TerminateWithError(FormatError("Unable to open file '%s'. Check file existence and permissions.", fileName));
+        TerminateWithErrorCode(ERR_IO, 1, FormatError("Cannot open file '%s'", fileName));
     size_t size = fileStats.st_size;
     if (size > gMaxFileSizeAllowed)
-        TerminateWithError(FormatError("File '%s' exceeds permitted size of %zu bytes.", fileName, gMaxFileSizeAllowed));
+        TerminateWithErrorCode(ERR_IO, 2, FormatError("File '%s' exceeds maximum size limit (%zu bytes)", fileName, gMaxFileSizeAllowed));
     FILE *fileHandle = fopen(fileName, "rb");
     if (!fileHandle)
-        TerminateWithError(FormatError("Unable to open file '%s'. Check file existence and permissions.", fileName));
+        TerminateWithErrorCode(ERR_IO, 3, FormatError("Cannot read file '%s'", fileName));
     char *buffer = AllocateMemory(size + 1);
     if (fread(buffer, 1, size, fileHandle) != size) {
         fclose(fileHandle);
         free(buffer);
-        TerminateWithError(FormatError("Incomplete file read from '%s'. File may be corrupted.", fileName));
+        TerminateWithErrorCode(ERR_IO, 4, FormatError("Read error in file '%s'", fileName));
     }
     fclose(fileHandle);
     buffer[size] = '\0';

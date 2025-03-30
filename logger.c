@@ -4,48 +4,58 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
-#include <time.h>
 #include <string.h>
 size_t gMaxFileSizeAllowed = MAX_FILE_SIZE;
-static inline void WriteLog(const char *level, const char *message) {
-    time_t now = time(NULL);
-    char buffer[128];
-    const char *color = CLR_RESET;
-    if (strcmp(level, "INFO") == 0) {
-        color = CLR_GREEN;
-    } else if (strcmp(level, "WARN") == 0) {
-        color = CLR_YELLOW;
-    } else if (strcmp(level, "ERR") == 0) {
-        color = CLR_RED;
-    }
-    int len = snprintf(buffer, sizeof(buffer), "%s[%s]%s [%ld] ", color, level, CLR_RESET, (long)now);
-    fwrite(buffer, 1, (size_t)len, stderr);
+static const char* const LOG_LEVEL_NAMES[] = {"INFO", "WARN", "ERR"};
+static const char* const LOG_LEVEL_COLORS[] = {CLR_GREEN, CLR_YELLOW, CLR_RED};
+static const char* const ERROR_CATEGORY_NAMES[] = {"SYNTAX", "RUNTIME", "MEMORY", "IO", "SYSTEM", "UNKNOWN"};
+void LogMessage(LogLevel level, const char *message) {
+    if (level < LOG_INFO || level > LOG_ERROR) return;
+    fputs(LOG_LEVEL_COLORS[level], stderr);
+    fputs("[", stderr);
+    fputs(LOG_LEVEL_NAMES[level], stderr);
+    fputs("]", stderr);
+    fputs(CLR_RESET, stderr);
+    fputs(" ", stderr);
     fputs(message, stderr);
     fputc('\n', stderr);
 }
-void LogInfo(const char *message) { WriteLog("INFO", message); }
-void LogWarning(const char *message) { WriteLog("WARN", message); }
-void LogError(const char *message) { WriteLog("ERR", message); }
 void TerminateWithError(const char *message) {
-    char output[256];
-    snprintf(output, sizeof(output), "%sInterpreter Error: %s%s", CLR_RED, message, CLR_RESET);
-    fputs(output, stderr);
+    fputs(CLR_RED, stderr);
+    fputs("ERROR: ", stderr);
+    fputs(message, stderr);
+    fputs(CLR_RESET, stderr);
+    fputc('\n', stderr);
+    exit(EXIT_FAILURE);
+}
+void TerminateWithErrorCode(ErrorCategory category, int code, const char *message) {
+    int categoryIndex = (category >= ERR_SYNTAX && category <= ERR_SYSTEM) ? 
+                        (category / 0x100) - 1 : 5;
+    int errorCode = category + code;
+    fputs(CLR_RED, stderr);
+    fputs(ERROR_CATEGORY_NAMES[categoryIndex], stderr);
+    fputs(" ERROR [", stderr);
+    char codeStr[8];
+    snprintf(codeStr, sizeof(codeStr), "%04X", errorCode);
+    fputs(codeStr, stderr);
+    fputs("]: ", stderr);
+    fputs(message, stderr);
+    fputs(CLR_RESET, stderr);
     fputc('\n', stderr);
     exit(EXIT_FAILURE);
 }
 char *FormatError(const char *format, ...) {
-    char buffer[256];
-    va_list args;
+    va_list args, argsCopy;
     va_start(args, format);
-    int required = vsnprintf(buffer, sizeof(buffer), format, args);
+    va_copy(argsCopy, args);
+    int required = vsnprintf(NULL, 0, format, args);
     va_end(args);
-    char *errString = AllocateMemory(required + 1);
-    if (required < (int)sizeof(buffer))
-        memcpy(errString, buffer, required + 1);
-    else {
-        va_start(args, format);
-        vsnprintf(errString, required + 1, format, args);
-        va_end(args);
+    if (required < 0) {
+        va_end(argsCopy);
+        return NULL;
     }
+    char *errString = AllocateMemory(required + 1);
+    vsnprintf(errString, required + 1, format, argsCopy);
+    va_end(argsCopy);
     return errString;
 }

@@ -13,7 +13,7 @@ size_t *CreateBracketMapping(const char *programCode, size_t codeLength) {
             if (stackTop == 0) {
                 free(bracketStack);
                 free(bracketMapping);
-                TerminateWithError("Syntax Error: Extra ']' encountered in code.");
+                TerminateWithErrorCode(ERR_SYNTAX, 1, "Unmatched closing bracket ']'");
             }
             size_t openPos = bracketStack[--stackTop];
             bracketMapping[openPos] = pos;
@@ -21,10 +21,10 @@ size_t *CreateBracketMapping(const char *programCode, size_t codeLength) {
         }
     }
     if (stackTop != 0) {
-        char *errMsg = FormatError("Syntax Error: Missing ']' for '[' at position %zu.", bracketStack[stackTop - 1]);
+        char *errMsg = FormatError("Missing closing bracket for '[' at position %zu", bracketStack[stackTop - 1]);
         free(bracketStack);
         free(bracketMapping);
-        TerminateWithError(errMsg);
+        TerminateWithErrorCode(ERR_SYNTAX, 2, errMsg);
     }
     free(bracketStack);
     return bracketMapping;

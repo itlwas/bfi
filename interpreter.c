@@ -15,7 +15,7 @@ void ExecuteBrainfuck(const char *programCode, size_t codeLength, const size_t *
         curCapacity = initialTapeCapacity;
         tape = (unsigned char *)calloc(curCapacity, 1);
         if (!tape)
-            TerminateWithError("Critical Error: Unable to allocate tape memory.");
+            TerminateWithErrorCode(ERR_MEMORY, 1, "Failed to allocate memory for tape");
         dataPtr = tape;
         *dataIndex = 0;
         peakMem = curCapacity;
@@ -29,6 +29,37 @@ void ExecuteBrainfuck(const char *programCode, size_t codeLength, const size_t *
     unsigned long long instrCount = 0;
     while (ip < codeLength && instrCount < maxIterations) {
         char cmd = programCode[ip];
+        if (cmd == '>' || cmd == '<') {
+            int offset = 0;
+            while (ip < codeLength && (programCode[ip] == '>' || programCode[ip] == '<')) {
+                offset += (programCode[ip] == '>') ? 1 : -1;
+                ip++;
+                instrCount++;
+            }
+            dataPtr += offset;
+            if (dataPtr < tape) {
+                TerminateWithErrorCode(ERR_RUNTIME, 1, "Tape underflow - pointer moved below position 0");
+            }
+            size_t newIdx = dataPtr - tape;   
+            if (newIdx >= curCapacity) {
+                size_t newCap = curCapacity << 1;
+                while (newCap <= newIdx)
+                    newCap <<= 1;
+                if (newCap > maxTapeCapacity) {
+                    if (maxTapeCapacity <= newIdx)
+                        TerminateWithErrorCode(ERR_RUNTIME, 2, "Maximum tape capacity exceeded");
+                    newCap = maxTapeCapacity;
+                }
+                unsigned char *newTape = (unsigned char *)ReallocateMemory(tape, newCap);
+                memset(newTape + curCapacity, 0, newCap - curCapacity);
+                dataPtr = newTape + newIdx;
+                tape = newTape;
+                curCapacity = newCap;
+                if (curCapacity > peakMem)
+                    peakMem = curCapacity;
+            }
+            continue;
+        }
         if (debugMode) {
             size_t curIdx = dataPtr - tape;
             size_t winStart = (curIdx >= snapshotWidth) ? curIdx - snapshotWidth : 0;
@@ -56,34 +87,6 @@ void ExecuteBrainfuck(const char *programCode, size_t codeLength, const size_t *
                         CLR_CYAN, disp, CLR_RESET);
             }
             printf("\n%s------------------------%s\n", CLR_BOLD, CLR_RESET);
-        }    
-        if (cmd == '>' || cmd == '<') {
-            int offset = 0;
-            while (ip < codeLength && (programCode[ip] == '>' || programCode[ip] == '<')) {
-                offset += (programCode[ip] == '>') ? 1 : -1;
-                ip++;
-                instrCount++;
-            }
-            dataPtr += offset;
-            size_t newIdx = dataPtr - tape;   
-            if (newIdx >= curCapacity) {
-                size_t newCap = curCapacity << 1;
-                while (newCap <= newIdx)
-                    newCap <<= 1;
-                if (newCap > maxTapeCapacity) {
-                    if (maxTapeCapacity <= newIdx)
-                        TerminateWithError("Runtime Error: Maximum tape capacity exceeded.");
-                    newCap = maxTapeCapacity;
-                }
-                unsigned char *newTape = (unsigned char *)ReallocateMemory(tape, newCap);
-                memset(newTape + curCapacity, 0, newCap - curCapacity);
-                dataPtr = newTape + newIdx;
-                tape = newTape;
-                curCapacity = newCap;
-                if (curCapacity > peakMem)
-                    peakMem = curCapacity;
-            }
-            continue;
         }
         if (cmd == '+' || cmd == '-') {
             int delta = 0;

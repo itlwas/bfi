@@ -28,7 +28,8 @@ static inline void Run(const char *srcCode, size_t codeSize, const size_t *brack
 int main(int argc, char *argv[]) {
     setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
     setvbuf(stdin, NULL, _IOLBF, BUFSIZ);
-    if (argc < 2) TerminateWithError("No Brainfuck source file specified.");
+    if (argc < 2) 
+        TerminateWithErrorCode(ERR_SYSTEM, 1, "No source file specified");
     bool debugEnabled = false;
     bool benchEnabled = false;
     const char *srcFile = NULL;
@@ -57,46 +58,52 @@ int main(int argc, char *argv[]) {
                     case 'h': PrintHelp(argv[0], options, optCount); return EXIT_SUCCESS;
                     case 'b': benchEnabled = true; break;
                     case 'i': {
-                        const char *arg = FetchNextArgument(argc, argv, &i, "Missing iteration limit parameter.");
+                        const char *arg = FetchNextArgument(argc, argv, &i, "Missing iteration limit parameter");
                         maxIter = ParseULL(arg);
-                        if (maxIter == 0) TerminateWithError("Invalid iteration limit provided.");
+                        if (maxIter == 0) 
+                            TerminateWithErrorCode(ERR_SYSTEM, 2, "Invalid iteration limit");
                         break;
                     }
                     case 'w': {
-                        const char *arg = FetchNextArgument(argc, argv, &i, "Missing snapshot width parameter.");
+                        const char *arg = FetchNextArgument(argc, argv, &i, "Missing snapshot width parameter");
                         snapWidth = (size_t)ParseULL(arg);
-                        if (snapWidth == 0) TerminateWithError("Invalid snapshot width provided for debugging.");
+                        if (snapWidth == 0) 
+                            TerminateWithErrorCode(ERR_SYSTEM, 3, "Invalid snapshot width");
                         break;
                     }
                     case 't': {
-                        const char *arg = FetchNextArgument(argc, argv, &i, "Missing initial tape capacity parameter.");
+                        const char *arg = FetchNextArgument(argc, argv, &i, "Missing initial tape capacity parameter");
                         initTape = (size_t)ParseULL(arg);
-                        if (initTape == 0) TerminateWithError("Invalid initial tape capacity provided.");
+                        if (initTape == 0) 
+                            TerminateWithErrorCode(ERR_SYSTEM, 4, "Invalid initial tape capacity");
                         break;
                     }
                     case 'M': {
-                        const char *arg = FetchNextArgument(argc, argv, &i, "Missing maximum tape capacity parameter.");
+                        const char *arg = FetchNextArgument(argc, argv, &i, "Missing maximum tape capacity parameter");
                         maxTape = (size_t)ParseULL(arg);
-                        if (maxTape < initTape) TerminateWithError("Maximum tape capacity must be greater than or equal to initial tape capacity.");
+                        if (maxTape < initTape) 
+                            TerminateWithErrorCode(ERR_SYSTEM, 5, "Maximum tape capacity must be >= initial capacity");
                         break;
                     }
                     case 'e': {
-                        const char *arg = FetchNextArgument(argc, argv, &i, "Missing EOF mode parameter.");
+                        const char *arg = FetchNextArgument(argc, argv, &i, "Missing EOF mode parameter");
                         eofMode = (int)ParseULL(arg);
-                        if (eofMode < 0 || eofMode > 2) TerminateWithError("Invalid EOF mode. Acceptable values are 0, 1, or 2.");
+                        if (eofMode < 0 || eofMode > 2) 
+                            TerminateWithErrorCode(ERR_SYSTEM, 6, "Invalid EOF mode (valid values: 0, 1, 2)");
                         break;
                     }
                 }
             } else {
-                TerminateWithError(FormatError("Unknown option: %s", argv[i]));
+                TerminateWithErrorCode(ERR_SYSTEM, 7, FormatError("Unknown option: %s", argv[i]));
             }
         } else if (!srcFile) {
             srcFile = argv[i];
         } else {
-            TerminateWithError("Multiple input files specified. Provide only one source file.");
+            TerminateWithErrorCode(ERR_SYSTEM, 8, "Multiple input files specified");
         }
     }
-    if (!srcFile) TerminateWithError("No Brainfuck source file specified.");
+    if (!srcFile) 
+        TerminateWithErrorCode(ERR_SYSTEM, 9, "No source file specified");
     size_t codeSize = 0;
     char *srcCode = ReadFileContent(srcFile, &codeSize);
     size_t *brackets = CreateBracketMapping(srcCode, codeSize);
