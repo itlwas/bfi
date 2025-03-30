@@ -1,0 +1,12 @@
+*.exe
+*.o
+*.bf
+*.out
+*.so
+*.a
+bfi
+*~
+*.tmp
+*.log
+Thumbs.db
+.DS_Store
