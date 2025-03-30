@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#define BFI_VERSION "v1.0"
 #define INITIAL_TAPE_CAPACITY 30000
 #define MAX_FILE_SIZE (10 * 1024 * 1024)
 #define MAX_TAPE_CAPACITY (1024 * 1024)

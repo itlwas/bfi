@@ -34,7 +34,10 @@ int main(int argc, char *argv[]) {
             char opt = argv[i][1];
             if (opt == 'd')
                 debugEnabled = true;
-            else if (opt == 'i') {
+            else if (opt == 'v' || strcmp(argv[i], "--version") == 0) {
+                printf("BFI %s\n", BFI_VERSION);
+                return EXIT_SUCCESS;
+            } else if (opt == 'i') {
                 if (!argv[i][2]) {
                     if (++i >= argc)
                         TerminateWithError("Missing iteration limit parameter.");
