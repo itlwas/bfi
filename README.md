@@ -1,8 +1,8 @@
 # BFI - Optimized Brainfuck Interpreter
 
-[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/yourusername/BFI)
+[![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/itlwas/bfi)
 [![License](https://img.shields.io/badge/license-Unlicense-blue.svg)](https://unlicense.org/)
-[![Release](https://img.shields.io/badge/release-v1.0-orange.svg)](https://github.com/yourusername/BFI/releases)
+[![Release](https://img.shields.io/badge/release-v1.0-orange.svg)](https://github.com/itlwas/bfi/releases)
 
 A lightweight, efficient, and feature-rich Brainfuck interpreter implemented in C. BFI aims to provide a robust platform for executing Brainfuck code with optimal performance while maintaining memory efficiency. This interpreter is designed for both educational purposes and practical use, offering developers a reliable tool to experiment with esoteric programming concepts through the minimalist but Turing-complete Brainfuck language.
 
@@ -50,8 +50,8 @@ To build BFI, you need:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/BFI.git
-   cd BFI
+   git clone https://github.com/itlwas/bfi.git
+   cd bfi
    ```
 
 2. Compile using the provided Makefile:
