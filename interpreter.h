@@ -2,6 +2,8 @@
 #define INTERPRETER_H
 #include <stdlib.h>
 #include <stdbool.h>
+extern size_t execMemPeak;
+extern unsigned long long execInstrCount;
 void ExecuteBrainfuck(const char *programCode,
     size_t codeLength,
     const size_t *bracketMapping,
