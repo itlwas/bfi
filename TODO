@@ -43,7 +43,6 @@
 
 ### Command Line Interface
 - [x] Improve argument parsing with extended options
-- [ ] Add support for configuration files
 - [x] Implement color output for debug information
 - [ ] Create interactive REPL mode
 - [ ] Add command history and autocompletion
