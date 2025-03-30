@@ -26,6 +26,8 @@ static inline void Run(const char *srcCode, size_t codeSize, const size_t *brack
     ExecuteBrainfuck(srcCode, codeSize, brackets, debug, snapWidth, initTape, maxTape, maxIter, eofMode, &tape, &tapeSize, &ptrPos, true);
 }
 int main(int argc, char *argv[]) {
+    if (!argc || !argv)
+        return EXIT_FAILURE;
     setvbuf(stdout, NULL, _IOLBF, BUFSIZ);
     setvbuf(stdin, NULL, _IOLBF, BUFSIZ);
     if (argc < 2) 
@@ -33,7 +35,9 @@ int main(int argc, char *argv[]) {
     bool debugEnabled = false;
     bool benchEnabled = false;
     const char *srcFile = NULL;
-    size_t snapWidth = SNAPSHOT_WIDTH, initTape = INITIAL_TAPE_CAPACITY, maxTape = MAX_TAPE_CAPACITY;
+    size_t snapWidth = SNAPSHOT_WIDTH;
+    size_t initTape = INITIAL_TAPE_CAPACITY;
+    size_t maxTape = MAX_TAPE_CAPACITY;
     unsigned long long maxIter = MAX_ITERATIONS;
     int eofMode = 0;
     const CmdOption options[] = {
@@ -106,8 +110,11 @@ int main(int argc, char *argv[]) {
         TerminateWithErrorCode(ERR_SYSTEM, 9, "No source file specified");
     size_t codeSize = 0;
     char *srcCode = ReadFileContent(srcFile, &codeSize);
+    if (!srcCode || codeSize == 0)
+        TerminateWithErrorCode(ERR_IO, 5, FormatError("Empty or invalid source file: %s", srcFile));
     size_t *brackets = CreateBracketMapping(srcCode, codeSize);
-    
+    if (!brackets)
+        TerminateWithErrorCode(ERR_SYNTAX, 3, "Failed to create bracket mapping");
     if (benchEnabled) {
         BenchRun(srcCode, codeSize, brackets, debugEnabled, snapWidth, initTape, maxTape, maxIter, eofMode);
     } else {
